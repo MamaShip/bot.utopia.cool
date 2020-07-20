@@ -4,7 +4,7 @@ import json
 import logging
 from mastodon import Mastodon
 from my_timer import RepeatedTimer
-# V1.0.1
+# V1.0.2
 
 # init logger
 logger = logging.getLogger("hitokoto_bot")
@@ -18,7 +18,8 @@ logger.addHandler(handler)
 mstd_website = 'https://utopia.cool'
 # def link
 link = 'https://v1.hitokoto.cn'
-para = "?encode=json&charset=utf-8&max_length=128"
+# 参数筛选：动画、漫画、游戏、文学、影视、诗词、哲学
+para = "?c=a&c=b&c=c&c=d&c=h&c=i&c=k&encode=json&charset=utf-8&max_length=128"
 request_url = link + para
 # def special list
 special_list = ['e', 'f', 'l', 'g'] # 原创/网络/抖机灵/其它
@@ -58,7 +59,7 @@ def parse_hitokoto(data):
 
     from_list = []
     if provenance is not None:
-        from_list.append(provenance)
+        from_list.append("《" + provenance + "》")
     if writer is not None:
         from_list.append(writer)
     from_text = '·'.join(from_list)
