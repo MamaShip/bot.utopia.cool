@@ -79,7 +79,7 @@ def post_msg(msg):
         access_token = 'pytooter_usercred.secret',
         api_base_url = mstd_website
     )
-    response = mastodon.status_post(msg, visibility="private")
+    response = mastodon.status_post(msg, visibility="public")
     return response
 
 def every_hour_task():
