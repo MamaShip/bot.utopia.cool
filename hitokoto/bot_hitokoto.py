@@ -4,6 +4,7 @@ import json
 import logging
 from mastodon import Mastodon
 from my_timer import RepeatedTimer
+# V1.0.1
 
 # init logger
 logger = logging.getLogger("hitokoto_bot")
@@ -53,24 +54,19 @@ def get_hitokoto(url):
 def parse_hitokoto(data):
     provenance, sentence, writer = data['from'], data['hitokoto'], data['from_who']
     from_type = data['type']
+    logger.info(from_type)
 
-    from_text = ""
-    if from_type in special_list:
-        if provenance is not None:
-            from_text += provenance
-        if writer is not None:
-            from_text += writer
-    else:
-        if provenance is not None:
-            from_text += '《' + provenance + '》'
-        if writer is not None:
-            from_text += writer
+    from_list = []
+    if provenance is not None:
+        from_list.append(provenance)
+    if writer is not None:
+        from_list.append(writer)
+    from_text = '·'.join(from_list)
     
-    if len(from_text) > 0:
+    if from_text is not None:
         msg = sentence + "\n\n——" + from_text
     else:
         msg = sentence
-    #print(msg)
     return msg
 
 def post_msg(msg):
@@ -80,14 +76,20 @@ def post_msg(msg):
         api_base_url = mstd_website
     )
     response = mastodon.status_post(msg, visibility="public")
+    print(">> msg sent")
     return response
 
 def every_hour_task():
-    hitokoto = get_hitokoto(request_url)
-    data = json.loads(hitokoto)
-    #print(data)
-    msg = parse_hitokoto(data)
-    post_msg(msg)
+    for i in range(3):
+        try:
+            hitokoto = get_hitokoto(request_url)
+            data = json.loads(hitokoto)
+            msg = parse_hitokoto(data)
+            post_msg(msg)
+        except:
+            logger.exception("every_hour_task fail " + str(i))
+        else:
+            break
 
 if __name__ == "__main__":
     make_cred_secret()
