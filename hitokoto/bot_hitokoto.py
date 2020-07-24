@@ -2,8 +2,10 @@ import os
 import requests
 import json
 import logging
+import schedule
+import time
 from mastodon import Mastodon
-from my_timer import RepeatedTimer
+#from my_timer import RepeatedTimer
 # V1.0.2
 
 # init logger
@@ -80,7 +82,7 @@ def post_msg(msg):
     print(">> msg sent")
     return response
 
-def every_hour_task():
+def periodic_task():
     for i in range(3):
         try:
             hitokoto = get_hitokoto(request_url)
@@ -88,11 +90,23 @@ def every_hour_task():
             msg = parse_hitokoto(data)
             post_msg(msg)
         except:
-            logger.exception("every_hour_task fail " + str(i))
+            logger.exception("periodic_task fail " + str(i))
         else:
             break
 
+
+schedule.every().day.at("09:00").do(periodic_task)
+schedule.every().day.at("12:00").do(periodic_task)
+schedule.every().day.at("14:00").do(periodic_task)
+schedule.every().day.at("16:00").do(periodic_task)
+schedule.every().day.at("19:00").do(periodic_task)
+schedule.every().day.at("22:00").do(periodic_task)
+schedule.every().day.at("00:00").do(periodic_task)
+
 if __name__ == "__main__":
     make_cred_secret()
-    rt = RepeatedTimer(3600, every_hour_task) # it auto-starts, no need of rt.start()
-    print("every_hour_task start!")
+    #rt = RepeatedTimer(3600, periodic_task) # it auto-starts, no need of rt.start()
+    print("periodic_task start!")
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
