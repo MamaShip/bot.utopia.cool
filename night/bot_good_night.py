@@ -2,7 +2,6 @@ import os
 import logging
 import schedule
 import time
-import linecache
 from datetime import datetime, timezone
 from mastodon import Mastodon, MastodonIllegalArgumentError
 
@@ -49,7 +48,7 @@ def post_msg(text, media, schedule_time):
         api_base_url = mstd_website
     )
     media_dict = mastodon.media_post(media)
-    response = mastodon.status_post("@twisted " + text, media_ids=media_dict, visibility="direct", scheduled_at=schedule_time)
+    response = mastodon.status_post(text, media_ids=media_dict, visibility="public", scheduled_at=schedule_time)
     return response
 
 def periodic_task():
@@ -129,15 +128,15 @@ def send_error_msg(text):
     return response
 
 
-schedule.every().day.at("21:00").do(periodic_task)
+schedule.every().day.at("19:00").do(periodic_task)
 
 
 if __name__ == "__main__":
     make_cred_secret()
     print("periodic_task start!")
-    periodic_task()
+    # periodic_task()
     
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(60)
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
     print("finish")
