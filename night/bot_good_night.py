@@ -5,7 +5,7 @@ import time
 from datetime import datetime, timezone
 from mastodon import Mastodon, MastodonIllegalArgumentError
 
-# V0.0.9
+# V0.1.0
 
 # init logger
 logger = logging.getLogger("good_night_bot")
@@ -49,10 +49,13 @@ def post_msg(text, media, schedule_time):
     )
     media_dict = mastodon.media_post(media)
     response = mastodon.status_post(text, media_ids=media_dict, visibility="public", scheduled_at=schedule_time)
+    # 测试时可用 direct 发送私信给自己的账号:
+    # response = mastodon.status_post("@twisted " + text, media_ids=media_dict, visibility="direct", scheduled_at=schedule_time)
     return response
 
 def periodic_task():
     # 这里似乎是UTC时间，不能直接用东8区时间。所以22:22的推送要减去8小时
+    # 不同服务器可能不一样，要测一下
     schedule_time = datetime.today().replace(hour=14, minute=22, second=0, microsecond=0)
     schedule_time = schedule_time.replace(tzinfo=timezone.utc)
     try:
@@ -60,24 +63,24 @@ def periodic_task():
     except:
         send_error_msg("找不到介绍文字")
         return
-
     msg_text = get_msg_text(name, writer)
-
     try:
         music_file = get_music_path(music)
     except:
         send_error_msg("找不到音乐文件")
         return
     
-    for i in range(3):
+    for i in range(3): # 考虑网络不稳定的情况，try 3次
         try:
             response = post_msg(msg_text, music_file, schedule_time)
-            print(response)
+            print('scheduled_at:', response['scheduled_at'])
         except:
-            print(i, "try fail")
+            print(i, "try failed")
             logger.exception("periodic_task fail " + str(i))
         else:
             logger.info(get_date_str() + ' post done!')
+            clear_old_file(music_file)
+            print("post finish, files cleared")
             break
         if i == 2:
             send_error_msg("文件及介绍无误，但发送失败")
@@ -127,6 +130,19 @@ def send_error_msg(text):
     response = mastodon.status_post(msg, visibility="direct")
     return response
 
+def remove_file(file):
+    if os.path.exists(file):
+        os.remove(file)
+    else:
+        print("The file does not exist",file)
+        logger.info('remove file dosnt exist: ' + file)
+
+def clear_old_file(music_file_path):
+    file_name = get_date_str() + '.txt'
+    info_file_path = os.path.join(FILE_PATH, file_name)
+
+    remove_file(music_file_path)
+    remove_file(info_file_path)
 
 schedule.every().day.at("19:00").do(periodic_task)
 
@@ -134,8 +150,6 @@ schedule.every().day.at("19:00").do(periodic_task)
 if __name__ == "__main__":
     make_cred_secret()
     print("periodic_task start!")
-    # periodic_task()
-    
     while True:
         schedule.run_pending()
         time.sleep(60)
