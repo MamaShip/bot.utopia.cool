@@ -106,17 +106,17 @@ def get_music_info():
     info_file_path = os.path.join(FILE_PATH, file_name)
     if not os.path.isfile(info_file_path):
         raise IOError("没有找到今日info文件")
-    with open(info_file_path,encoding="utf-8") as f:
+    with open(info_file_path,'rU',encoding="utf-8") as f:
         info = f.readlines()
-        name = info[0]
-        writer = info[1]
-        music = info[2]
+        name = info[0].strip(os.linesep)
+        writer = info[1].strip(os.linesep)
+        music = info[2].strip(os.linesep)
     return name, writer, music
 
 def get_msg_text(name, writer):
     text = get_date_str('/')
     text += "\n\n歌曲：" + name + "\n艺术家：" + writer
-    print(text)
+    # print(text)
     return text
 
 def send_error_msg(text):
