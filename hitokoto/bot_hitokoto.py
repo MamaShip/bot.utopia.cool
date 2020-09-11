@@ -31,7 +31,7 @@ BOT_PASSWD = os.getenv("HITOKOTO_PASSWD", "")
 
 def make_cred_secret():
     Mastodon.create_app(
-        'pytooterapp',
+        'hitokoto bot',
         api_base_url = mstd_website,
         to_file = 'pytooter_clientcred.secret'
     )
