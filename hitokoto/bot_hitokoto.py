@@ -86,10 +86,11 @@ def periodic_task():
     for i in range(3):
         try:
             hitokoto = get_hitokoto(request_url)
-            data = json.loads(hitokoto)
+            data = json.loads(hitokoto.decode('utf-8'))
             msg = parse_hitokoto(data)
             post_msg(msg)
         except:
+            print("periodic_task fail ", i)
             logger.exception("periodic_task fail " + str(i))
         else:
             break
